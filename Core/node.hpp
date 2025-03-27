@@ -9,12 +9,13 @@
  */
 
 struct Node {
-    const char* name;
+    std::string name;
     double x, y;
 
     bool operator==(const Node& other) const;
 
-    Node(const char* name, double x, double y);
+    Node();
+    Node(std::string name, double x, double y);
 
     Node(const Node& other);
     Node& operator=(const Node& other);
@@ -22,7 +23,7 @@ struct Node {
     Node(Node&& other) noexcept;
     Node& operator=(Node&& other) noexcept;
 
-    ~Node();
+    ~Node() = default;
 };
 
 namespace std {

@@ -27,3 +27,10 @@ unix|win32: LIBS += -L$$PWD/../Core/build/Desktop-Debug/ -lCore
 
 INCLUDEPATH += $$PWD/../Core/build/Desktop-Debug
 DEPENDPATH += $$PWD/../Core/build/Desktop-Debug
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../Core/build/Desktop-Debug/release/ -lCore
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../Core/build/Desktop-Debug/debug/ -lCore
+else:unix: LIBS += -L$$PWD/../Core/build/Desktop-Debug/ -lCore
+
+INCLUDEPATH += $$PWD/../Core/build/Desktop-Debug
+DEPENDPATH += $$PWD/../Core/build/Desktop-Debug

@@ -1,8 +1,10 @@
 #include "node.hpp"
 #include <utility>
-#include <cstring>
 
-Node::Node(const char* name, double x, double y) :
+Node::Node() :
+    name(""), x(0), y(0) { }
+
+Node::Node(std::string name, double x, double y) :
     name(name), x(x), y(y) { }
 
 Node::Node(const Node& other) :
@@ -31,12 +33,8 @@ Node& Node::operator=(Node&& other) noexcept {
     return *this;
 }
 
-Node::~Node() {
-    delete name;
-}
-
 bool Node::operator==(const Node& other) const {
-    return std::strcmp(name, other.name) == 0;
+    return name == other.name;
 }
 
 
