@@ -26,9 +26,10 @@ public:
 
 public slots:
     void ReadFromAdjacencyMatrix();
+    void EstablishConnections();
 
 private:
-    std::list<Node*> m_nodes;
+    std::list<Node*> m_graphes;
     QGridLayout* gridLayout = nullptr;
     Ui::MainWindow *ui;
 };

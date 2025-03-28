@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QWidget>
 #include <QPushButton>
+#include <QHBoxLayout>
 
 #include <QString>
 
@@ -111,10 +112,10 @@ void MainWindow::ReadFromAdjacencyMatrix() {
                 }
             }
         }
-        m_nodes.push_back(new_node);
+        m_graphes.push_back(new_node);
     }
 
-    for (auto begin = m_nodes.begin(); begin != m_nodes.end(); ++begin)
+    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin)
         qDebug() << QString::fromStdString((*begin)->name) << " " << (*begin)->x << " " << (*begin)->y << "\n";
 
     while (QLayoutItem* item = gridLayout->takeAt(0)) {
@@ -124,7 +125,55 @@ void MainWindow::ReadFromAdjacencyMatrix() {
         }
         delete item;
     }
+    EstablishConnections();
 }
+
+void MainWindow::EstablishConnections() {
+    QGridLayout* grid = new QGridLayout();
+
+    int col = 1;
+    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin, ++col) {
+        auto name = QString::fromStdString((*begin)->name);
+        QLabel* graph_name = new QLabel(name);
+        grid->addWidget(graph_name, 0, col);
+    }
+
+    int row = 1;
+    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin, ++row) {
+        auto name = QString::fromStdString((*begin)->name);
+        QLabel* graph_name = new QLabel(name);
+        grid->addWidget(graph_name, row, 0, Qt::AlignCenter);
+    }
+
+    const size_t number_of_graphs = m_graphes.size();
+    for (size_t row = 1; row <= number_of_graphs; ++row) {
+        for (size_t col = 1; col <= number_of_graphs; ++col) {
+            QPushButton* isConnected = new QPushButton("0");
+            isConnected->setStyleSheet("background-color: gray");
+
+            grid->addWidget(isConnected, row, col, Qt::AlignLeft | Qt::AlignTop);
+
+            connect(isConnected, &QPushButton::clicked, [isConnected](){
+                if (isConnected->text() == "1") {
+                    isConnected->setStyleSheet("background-color: gray");
+                    isConnected->setText("0");
+                } else {
+                    isConnected->setStyleSheet("background-color: orange");
+                    isConnected->setText("1");
+                }
+            });
+        }
+    }
+
+    QWidget* central_widget = new QWidget();
+    central_widget->setMaximumHeight(200);
+    central_widget->setMaximumWidth(200);
+
+    central_widget->setLayout(grid);
+    this->setCentralWidget(central_widget);
+
+}
+
 
 void MainWindow::paintEvent(QPaintEvent* event) {
     // Node* node1 = new Node("node1", 40, 40);
