@@ -6,6 +6,7 @@
 #include <QObject>
 
 #include "../Core/node.hpp"
+#include "../Core/edge.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -25,12 +26,22 @@ public:
     ~MainWindow();
 
 public slots:
-    void ReadFromAdjacencyMatrix();
-    void EstablishConnections();
+    void CheckReadNumberNodesCharacterisitics();
+    void RecordNodesCharacteristics();
+    void CheckReadFields();
+    void SetConnections();
 
 private:
-    std::list<Node*> m_graphes;
-    QGridLayout* gridLayout = nullptr;
+    int m_node_number {0};
+    int m_characteristics_number {0};
+
+    std::vector<Node*> m_graphes;
+    std::list<Edge*> m_edges;
+
+    QGridLayout* m_node_metrics {nullptr};
+    QGridLayout* m_node_characteristics {nullptr};
+    QGridLayout* m_node_connections {nullptr};
+
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
