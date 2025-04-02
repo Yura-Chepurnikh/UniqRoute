@@ -49,47 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
     QObject::connect(enter, &QPushButton::clicked, this, &MainWindow::RecordNodesCharacteristics);
 }
 
-void MainWindow::CheckReadNumberNodesCharacterisitics() {
-    try {
-        if (!m_node_metrics) {
-            throw std::runtime_error("node metrics does not exist");
-        }
-
-        for (size_t i = 0; i < m_node_metrics->count(); ++i) {
-            QLayoutItem* item = m_node_metrics->itemAt(i);
-
-            if (!item) {
-                continue;
-            }
-
-            QWidget* widget = item->widget();
-            if (!widget) {
-                continue;
-            }
-
-            QLineEdit* field = qobject_cast<QLineEdit*>(widget);
-            QString data;
-            if (field) {
-                data = field->text();
-                if (data.isEmpty()) {
-                    std::string error_message = "field: " + std::to_string(i) + " is empty.";
-                    throw std::runtime_error(error_message);
-                }
-            }
-
-            if (!m_node_number) {
-                m_node_number = data.toInt();
-            }
-            else if (!m_characteristics_number) {
-                m_characteristics_number = data.toInt();
-            }
-        }
-    }
-    catch (const std::exception& e) {
-        qDebug() << e.what();
-    }
-}
-
 void MainWindow::RecordNodesCharacteristics() {
     CheckReadNumberNodesCharacterisitics();
 
@@ -132,10 +91,105 @@ void MainWindow::RecordNodesCharacteristics() {
     connect(enter, &QPushButton::clicked, this, &MainWindow::SetConnections);
 }
 
+void MainWindow::SetConnections() {
+    CheckReadFields();
+
+    QGridLayout* grid = new QGridLayout();
+
+    int col = 1;
+    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin, ++col) {
+        auto name = QString::fromStdString((*begin)->name);
+        QLabel* graph_name = new QLabel(name);
+        grid->addWidget(graph_name, 0, col);
+    }
+
+    int row = 1;
+    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin, ++row) {
+        auto name = QString::fromStdString((*begin)->name);
+        QLabel* graph_name = new QLabel(name);
+        grid->addWidget(graph_name, row, 0, Qt::AlignCenter);
+    }
+
+    const size_t number_of_graphs = m_graphes.size();
+    for (size_t row = 1; row <= number_of_graphs; ++row) {
+        for (size_t col = 1; col <= number_of_graphs; ++col) {
+            QPushButton* isConnected = new QPushButton("0");
+            isConnected->setStyleSheet("background-color: gray");
+
+            grid->addWidget(isConnected, row, col, Qt::AlignLeft | Qt::AlignTop);
+
+            connect(isConnected, &QPushButton::clicked, [isConnected](){
+                if (isConnected->text() == "1") {
+                    isConnected->setStyleSheet("background-color: gray");
+                    isConnected->setText("0");
+                } else {
+                    isConnected->setStyleSheet("background-color: orange");
+                    isConnected->setText("1");
+                }
+            });
+        }
+    }
+
+    QPushButton* enter = new QPushButton("Enter");
+    grid->addWidget(enter);
+
+    QWidget* central_widget = new QWidget();
+    central_widget->setMaximumHeight(200);
+    central_widget->setMaximumWidth(200);
+
+    central_widget->setLayout(grid);
+
+    m_node_connections = grid;
+    this->setCentralWidget(central_widget);
+
+    connect(enter, &QPushButton::clicked, this, &MainWindow::ReadConnections);
+}
+
+void MainWindow::CheckReadNumberNodesCharacterisitics() {
+    try {
+        if (!m_node_metrics) {
+            throw std::runtime_error("node metrics does not exist");
+        }
+
+        for (size_t i = 0; i < m_node_metrics->count(); ++i) {
+            QLayoutItem* item = m_node_metrics->itemAt(i);
+
+            if (!item) {
+                continue;
+            }
+
+            QWidget* widget = item->widget();
+            if (!widget) {
+                continue;
+            }
+
+            QLineEdit* field = qobject_cast<QLineEdit*>(widget);
+            QString data;
+            if (field) {
+                data = field->text();
+                if (data.isEmpty()) {
+                    std::string error_message = "field: " + std::to_string(i) + " is empty.";
+                    throw std::runtime_error(error_message);
+                }
+            }
+
+            if (!m_node_number) {
+                m_node_number = data.toInt();
+            }
+            else if (!m_characteristics_number) {
+                m_characteristics_number = data.toInt();
+            }
+        }
+    }
+    catch (const std::exception& e) {
+        qDebug() << e.what();
+    }
+}
+
 void MainWindow::CheckReadFields() {
     try {
         if (!m_node_characteristics) {
-            throw std::runtime_error("Characteristics does not exist!");
+            throw std::runtime_error("Characteristics does not exist.");
         }
 
         int step = m_characteristics_number;
@@ -201,99 +255,105 @@ void MainWindow::CheckReadFields() {
     }
 }
 
-void MainWindow::SetConnections() {
-    CheckReadFields();
-
-    QGridLayout* grid = new QGridLayout();
-
-    int col = 1;
-    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin, ++col) {
-        auto name = QString::fromStdString((*begin)->name);
-        QLabel* graph_name = new QLabel(name);
-        grid->addWidget(graph_name, 0, col);
-    }
-
-    int row = 1;
-    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin, ++row) {
-        auto name = QString::fromStdString((*begin)->name);
-        QLabel* graph_name = new QLabel(name);
-        grid->addWidget(graph_name, row, 0, Qt::AlignCenter);
-    }
-
-    const size_t number_of_graphs = m_graphes.size();
-    for (size_t row = 1; row <= number_of_graphs; ++row) {
-        for (size_t col = 1; col <= number_of_graphs; ++col) {
-            QPushButton* isConnected = new QPushButton("0");
-            isConnected->setStyleSheet("background-color: gray");
-
-            grid->addWidget(isConnected, row, col, Qt::AlignLeft | Qt::AlignTop);
-
-            connect(isConnected, &QPushButton::clicked, [isConnected](){
-                if (isConnected->text() == "1") {
-                    isConnected->setStyleSheet("background-color: gray");
-                    isConnected->setText("0");
-                } else {
-                    isConnected->setStyleSheet("background-color: orange");
-                    isConnected->setText("1");
-                }
-            });
+void MainWindow::ReadConnections() {
+    try {
+        if (!m_node_connections) {
+            throw std::runtime_error("Characteristics does not exist.");
         }
+        int count = -1;
+        for (size_t i = 0; i < m_node_connections->count(); ++i) {
+            QLayoutItem* item = m_node_connections->itemAt(i);
+            if (!item) {
+                continue;
+            }
+            QWidget* widget = item->widget();
+            if (!widget) {
+                continue;
+            }
+
+            QPushButton* toggle = qobject_cast<QPushButton*>(widget);
+            if (toggle) {
+                ++count;
+
+                QString data = toggle->text();
+
+                if (data == "1") {
+
+                    int i_index = count / m_node_number;
+                    int j_index = count % m_node_number;
+
+                    qDebug() << count << "index name: " << i_index << "\t" << j_index;
+
+                    qDebug() << "node name: " << QString::fromStdString(m_graphes[i_index]->name) << "\t" << QString::fromStdString( m_graphes[j_index]->name);
+
+                    if (m_graphes[i_index] && m_graphes[j_index]) {
+
+                    auto cost = std::sqrt(std::pow(m_graphes[i_index]->x - m_graphes[j_index]->x, 2) +
+                                          std::pow(m_graphes[i_index]->y - m_graphes[j_index]->y, 2));
+
+                    Edge* edge = new Edge(cost, m_graphes[i_index], m_graphes[j_index]);
+
+                    m_edges.push_back(edge);
+                    }
+                }
+            }
+        }
+
+        std::unordered_map<Node*, std::list<Edge*>> table;
+
+        for (size_t i = 0; i < m_edges.size() - 1; ++i) {
+            std::list<Edge*> edges;
+            edges.push_back(m_edges[i]);
+            for (size_t j = i + 1; j < m_edges.size(); ++j) {
+                if (m_edges[i]->nodes.first == m_edges[j]->nodes.first) {
+                    edges.push_back(m_edges[j]);
+                }
+            }
+            table.emplace(m_edges[i]->nodes.first, edges);
+        }
+        m_nodeEdgeTable = NodeEdgeTable::GetInstance(table);
+
+        m_isAllowedDraw = true;
+
+        while (QLayoutItem* item = m_node_connections->takeAt(0)) {
+            if (QWidget* widget = item->widget()) {
+                widget->hide();
+                delete widget;
+            }
+            delete item;
+        }
+        update();
+
+
+    } catch (const std::exception& e) {
+        qDebug() << e.what();
     }
-
-    QWidget* central_widget = new QWidget();
-    central_widget->setMaximumHeight(200);
-    central_widget->setMaximumWidth(200);
-
-    central_widget->setLayout(grid);
-    this->setCentralWidget(central_widget);
-
 }
 
-
 void MainWindow::paintEvent(QPaintEvent* event) {
-    // Node* node1 = new Node("node1", 40, 40);
-    // Node* node2 = new Node("node2", 200, 200);
-    // Node* node3 = new Node("node3", 60, 500);
-    // Node* node4 = new Node("node4", 400, 400);
+    if (m_isAllowedDraw) {
 
-    // Edge* e12 = new Edge(100, node1, node2);
-    // Edge* e23 = new Edge(200, node2, node3);
-    // Edge* e31 = new Edge(300, node3, node1);
+        QPainter painter(this);
+        QPen pen(Qt::red);
+        painter.setPen(pen);
 
-    // std::unordered_map<Node*, std::list<Edge*>> table;
+        for (const auto& [key, value] : m_nodeEdgeTable->GetTable()) {
+            painter.setPen(Qt::red);
 
-    // std::list<Edge*> node1_edges {e12, e31};
-    // std::list<Edge*> node2_edges {e12, e23};
-    // std::list<Edge*> node3_edges {e23, e31};
+            QString str = QString::fromStdString(key->name);
+            painter.drawText(key->x + 20, key->y, str);
 
-    // table.insert({node1, {}});
-    // table.insert({node2, {}});
-    // table.insert({node3, {node3_edges}});
-    // table.insert({node4, {}});
+            painter.drawEllipse(QPoint(key->x, key->y), 5, 5);
 
-    // NodeEdgeTable* nodeEdgeTable = NodeEdgeTable::GetInstance(table);
+            painter.setPen(Qt::blue);
 
-    // QPainter painter(this);
-    // QPen pen(Qt::red);
-    // painter.setPen(pen);
-
-    // for (const auto& [key, value] : nodeEdgeTable->GetTable()) {
-    //     painter.setPen(Qt::red);
-
-    //     QLabel* name = new QLabel(key->name, this);
-    //     name->show();
-    //     name->move(key->x, key->y);
-
-    //     painter.drawEllipse(QPoint(key->x, key->y), 5, 5);
-
-    //     painter.setPen(Qt::blue);
-
-    //     for (auto i = value.begin(); i != value.end(); ++i) {
-    //         QPoint point1((*i)->nodes.first->x, (*i)->nodes.first->y);
-    //         QPoint point2((*i)->nodes.second->x, (*i)->nodes.second->y);
-    //         painter.drawLine(point1, point2);
-    //     }
-    // }
+            for (auto i = value.begin(); i != value.end(); ++i) {
+                QPoint point1((*i)->nodes.first->x, (*i)->nodes.first->y);
+                QPoint point2((*i)->nodes.second->x, (*i)->nodes.second->y);
+                painter.drawLine(point1, point2);
+            }
+        }
+    }
 }
 
 MainWindow::~MainWindow()

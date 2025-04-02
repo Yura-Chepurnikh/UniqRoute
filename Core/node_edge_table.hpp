@@ -30,11 +30,9 @@ public:
     std::list<Edge*> FindEdgeByNode(Node* node);
 
 private:
-    static NodeEdgeTable* m_table;
+    inline static NodeEdgeTable* m_table;
     NodeEdgeTable(const std::unordered_map<Node*, std::list<Edge*>>& table);
     std::unordered_map<Node*, std::list<Edge*>> m_node_edge_table;
 };
-
-NodeEdgeTable* NodeEdgeTable::m_table = nullptr;
 
 #endif // NODE_EDGE_TABLE_HPP

@@ -1,6 +1,8 @@
 #include "node_edge_table.hpp"
 #include <stdexcept>
 
+//NodeEdgeTable* NodeEdgeTable::m_table = nullptr;
+
 NodeEdgeTable::~NodeEdgeTable() {
     delete m_table;
 }
