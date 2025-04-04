@@ -7,7 +7,7 @@
 
 #include "../Core/node.hpp"
 #include "../Core/edge.hpp"
-#include "../Core/node_edge_table.hpp"
+#include "../Core/graph.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -32,6 +32,7 @@ public slots:
     void CheckReadFields();
     void SetConnections();
     void ReadConnections();
+    void FindShortestPath();
 
 private:
     bool m_isAllowedDraw {false};
@@ -39,14 +40,17 @@ private:
     int m_node_number {0};
     int m_characteristics_number {0};
 
-    std::vector<Node*> m_graphes;
+    std::vector<Node*> m_nodes;
     std::vector<Edge*> m_edges;
+
+    Node* m_starting_node;
+    Node* m_final_node;
 
     QGridLayout* m_node_metrics {nullptr};
     QGridLayout* m_node_characteristics {nullptr};
     QGridLayout* m_node_connections {nullptr};
 
-    NodeEdgeTable* m_nodeEdgeTable;
+    Graph* m_graph;
 
     Ui::MainWindow *ui;
 };

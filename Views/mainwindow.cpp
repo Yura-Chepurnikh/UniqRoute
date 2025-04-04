@@ -7,7 +7,7 @@
 
 #include "../Core/node.hpp"
 #include "../Core/edge.hpp"
-#include "../Core/node_edge_table.hpp"
+#include "../Core/graph.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -97,20 +97,20 @@ void MainWindow::SetConnections() {
     QGridLayout* grid = new QGridLayout();
 
     int col = 1;
-    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin, ++col) {
+    for (auto begin = m_nodes.begin(); begin != m_nodes.end(); ++begin, ++col) {
         auto name = QString::fromStdString((*begin)->name);
         QLabel* graph_name = new QLabel(name);
         grid->addWidget(graph_name, 0, col);
     }
 
     int row = 1;
-    for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin, ++row) {
+    for (auto begin = m_nodes.begin(); begin != m_nodes.end(); ++begin, ++row) {
         auto name = QString::fromStdString((*begin)->name);
         QLabel* graph_name = new QLabel(name);
         grid->addWidget(graph_name, row, 0, Qt::AlignCenter);
     }
 
-    const size_t number_of_graphs = m_graphes.size();
+    const size_t number_of_graphs = m_nodes.size();
     for (size_t row = 1; row <= number_of_graphs; ++row) {
         for (size_t col = 1; col <= number_of_graphs; ++col) {
             QPushButton* isConnected = new QPushButton("0");
@@ -141,6 +141,11 @@ void MainWindow::SetConnections() {
 
     m_node_connections = grid;
     this->setCentralWidget(central_widget);
+
+    // connect(enter, &QPushButton::clicked, [this]() {
+    //     //ReadConnections();
+    //     FindShortestPath();
+    // });
 
     connect(enter, &QPushButton::clicked, this, &MainWindow::ReadConnections);
 }
@@ -235,10 +240,10 @@ void MainWindow::CheckReadFields() {
                 }
             }
             if (new_node->name != "")
-                m_graphes.push_back(new_node);
+                m_nodes.push_back(new_node);
         }
 
-        for (auto begin = m_graphes.begin(); begin != m_graphes.end(); ++begin) {
+        for (auto begin = m_nodes.begin(); begin != m_nodes.end(); ++begin) {
             qDebug() << "info" << QString::fromStdString((*begin)->name) << " " << (*begin)->x << " " << (*begin)->y << "\n";
         }
 
@@ -257,6 +262,7 @@ void MainWindow::CheckReadFields() {
 
 void MainWindow::ReadConnections() {
     try {
+        qDebug() << "read1";
         if (!m_node_connections) {
             throw std::runtime_error("Characteristics does not exist.");
         }
@@ -284,14 +290,14 @@ void MainWindow::ReadConnections() {
 
                     qDebug() << count << "index name: " << i_index << "\t" << j_index;
 
-                    qDebug() << "node name: " << QString::fromStdString(m_graphes[i_index]->name) << "\t" << QString::fromStdString( m_graphes[j_index]->name);
+                    qDebug() << "node name: " << QString::fromStdString(m_nodes[i_index]->name) << "\t" << QString::fromStdString( m_nodes[j_index]->name);
 
-                    if (m_graphes[i_index] && m_graphes[j_index]) {
+                    if (m_nodes[i_index] && m_nodes[j_index]) {
 
-                    auto cost = std::sqrt(std::pow(m_graphes[i_index]->x - m_graphes[j_index]->x, 2) +
-                                          std::pow(m_graphes[i_index]->y - m_graphes[j_index]->y, 2));
+                    auto cost = std::sqrt(std::pow(m_nodes[i_index]->x - m_nodes[j_index]->x, 2) +
+                                          std::pow(m_nodes[i_index]->y - m_nodes[j_index]->y, 2));
 
-                    Edge* edge = new Edge(cost, m_graphes[i_index], m_graphes[j_index]);
+                    Edge* edge = new Edge(cost, m_nodes[i_index], m_nodes[j_index]);
 
                     m_edges.push_back(edge);
                     }
@@ -300,6 +306,7 @@ void MainWindow::ReadConnections() {
         }
 
         std::unordered_map<Node*, std::list<Edge*>> table;
+        qDebug() << "read2";
 
         for (size_t i = 0; i < m_edges.size() - 1; ++i) {
             std::list<Edge*> edges;
@@ -311,9 +318,9 @@ void MainWindow::ReadConnections() {
             }
             table.emplace(m_edges[i]->nodes.first, edges);
         }
-        m_nodeEdgeTable = NodeEdgeTable::GetInstance(table);
+        m_graph = Graph::GetInstance(table);
 
-        m_isAllowedDraw = true;
+        //m_isAllowedDraw = true;
 
         while (QLayoutItem* item = m_node_connections->takeAt(0)) {
             if (QWidget* widget = item->widget()) {
@@ -323,21 +330,92 @@ void MainWindow::ReadConnections() {
             delete item;
         }
         update();
+        qDebug() << "read";
 
-
+        //connect(enter, &QPushButton::clicked, this, &MainWindow::FindShortestPath);
+        FindShortestPath();
     } catch (const std::exception& e) {
         qDebug() << e.what();
     }
 }
 
+void MainWindow::FindShortestPath() {
+    qDebug() << "a1";
+
+    QGridLayout* grid = new QGridLayout;
+
+    QLabel* starting_node_label = new QLabel("starting node");
+    QListWidget* starting_node_field = new QListWidget();
+    for (auto node : m_nodes) {
+        starting_node_field->addItem(QString::fromStdString(node->name));
+    }
+    starting_node_field->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    QLabel* final_node_label = new QLabel("final node");
+    QListWidget* final_node_field = new QListWidget();
+    for (auto node : m_nodes) {
+        final_node_field->addItem(QString::fromStdString(node->name));
+    }
+    final_node_field->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    grid->addWidget(starting_node_label, 0, 0);
+    grid->addWidget(final_node_label, 0, 1);
+    grid->addWidget(starting_node_field, 1, 0);
+    grid->addWidget(final_node_field, 1, 1);
+
+    QPushButton* enter = new QPushButton("Enter");
+
+    grid->addWidget(enter);
+
+    QWidget* central_widget = new QWidget();
+    central_widget->setLayout(grid);
+    this->setCentralWidget(central_widget);
+    qDebug() << "a2";
+
+    connect(enter, &QPushButton::clicked, [starting_node_field, final_node_field, this, grid]() {
+        qDebug() << "YO1";
+
+        QListWidgetItem* selected_starting_node = starting_node_field->currentItem();
+        QListWidgetItem* selected_final_node = final_node_field->currentItem();
+        qDebug() << "YO2";
+
+        for (auto node : m_nodes) {
+            if (selected_starting_node->text() == QString::fromStdString(node->name)) {
+                m_starting_node = node;
+            }
+            else if (selected_final_node->text() == QString::fromStdString(node->name)) {
+                m_final_node = node;
+            }
+        }
+        qDebug() << "YO3";
+
+        while (QLayoutItem* item = grid->takeAt(0)) {
+            if (QWidget* widget = item->widget()) {
+                widget->hide();
+                delete widget;
+            }
+            delete item;
+        }
+        qDebug() << "YO4";
+
+        qDebug() << "starting node" << QString::fromStdString(m_starting_node->name);
+        qDebug() << "final node" << QString::fromStdString(m_final_node->name);
+
+        m_isAllowedDraw = true;
+        update();
+    });
+    qDebug() << "a3";
+}
+
 void MainWindow::paintEvent(QPaintEvent* event) {
     if (m_isAllowedDraw) {
+        qDebug() << "aasdd1";
 
         QPainter painter(this);
         QPen pen(Qt::red);
         painter.setPen(pen);
 
-        for (const auto& [key, value] : m_nodeEdgeTable->GetTable()) {
+        for (const auto& [key, value] : m_graph->GetTable()) {
             painter.setPen(Qt::red);
 
             QString str = QString::fromStdString(key->name);
@@ -350,8 +428,25 @@ void MainWindow::paintEvent(QPaintEvent* event) {
             for (auto i = value.begin(); i != value.end(); ++i) {
                 QPoint point1((*i)->nodes.first->x, (*i)->nodes.first->y);
                 QPoint point2((*i)->nodes.second->x, (*i)->nodes.second->y);
+                qDebug() << point1 << '\t << point2';
+
                 painter.drawLine(point1, point2);
             }
+        }
+
+        qDebug() << "aasdd2";
+
+        std::list<Node*> shortest_path = m_graph->DijkstraAlgorithm(m_starting_node, m_final_node, m_graph);
+        qDebug() << "aasdd3";
+        QPen path_pen(Qt::green);
+        painter.setPen(path_pen);
+        for (auto node : shortest_path) {
+            //qDebug() << QString::fromStdString(node->name)<< " " << node->x << " " << node->y;
+
+            QPoint starting_point(node->x, node->y);
+            QPoint final_point((++node)->x, (++node)->y);
+            QLine segment(starting_point, final_point);
+            painter.drawLine(segment);
         }
     }
 }

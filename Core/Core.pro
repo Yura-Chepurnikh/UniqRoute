@@ -12,15 +12,15 @@ CONFIG += c++17
 SOURCES += \
     core.cpp \
     edge.cpp \
-    node.cpp \
-    node_edge_table.cpp
+    graph.cpp \
+    node.cpp
 
 HEADERS += \
     Core_global.h \
     core.h \
     edge.hpp \
-    node.hpp \
-    node_edge_table.hpp
+    graph.hpp \
+    node.hpp
 
 # Default rules for deployment.
 unix {
