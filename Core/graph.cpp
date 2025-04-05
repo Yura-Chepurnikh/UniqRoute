@@ -1,4 +1,6 @@
-#include "graph.hpp"
+#include <graph.hpp>
+#include <utility>
+#include <list>
 #include <stdexcept>
 #include <QDebug>
 
@@ -31,6 +33,57 @@ std::list<Edge*> Graph::FindEdgesByNode(Node* node) {
 }
 
 std::list<Node*> Graph::DijkstraAlgorithm(Node *starting_node, Node *final_node, Graph* graph) {
-    std::list<Node*> result {starting_node};
-    return result;
+    std::unordered_map<Node*, int> shortest;
+    std::unordered_map<Node*, Node*> previous_node;
+
+    std::list<Node*> unvisited_nodes;
+
+    auto table = graph->GetTable();
+
+    for (const auto& [node, edges] : table) {
+        unvisited_nodes.push_back(node);
+        shortest[node] = INT_MAX;
+    }
+    shortest[starting_node] = 0;
+
+    Node* current_node = starting_node;
+
+    while (!unvisited_nodes.empty())
+    {
+        int shortest_distance = INT_MAX;
+        for (const auto& node : unvisited_nodes) {
+            if (shortest[node] < shortest_distance) {
+                shortest_distance = shortest[node];
+                current_node = node;
+            }
+        }
+
+        unvisited_nodes.remove(current_node);
+
+        if (current_node == final_node) break;
+
+        auto edges = graph->FindEdgesByNode(current_node);
+        for (auto edge : edges)
+        {
+            Node* neighbor = edge->nodes.second;
+            int update_distance = shortest[current_node] + edge->cost;
+
+            if (update_distance < shortest[neighbor])
+            {
+                shortest[neighbor] = update_distance;
+                previous_node[neighbor] = current_node;
+            }
+        }
+    }
+
+    std::list<Node*> shortest_path;
+    for (Node* node = final_node; node != nullptr; node = previous_node[node]) {
+        shortest_path.push_back(node);
+    }
+
+    for (auto node : shortest_path) {
+        qDebug() << QString::fromStdString(node->name);
+    }
+
+    return shortest_path;
 }
