@@ -53,8 +53,8 @@ void MainWindow::RecordNodesCharacteristics() {
     CheckReadNumberNodesCharacterisitics();
 
     QWidget* centralWidget = new QWidget(this);
-    centralWidget->setMaximumHeight(600);
-    centralWidget->setMaximumWidth(600);
+    centralWidget->setMaximumHeight(300);
+    centralWidget->setMaximumWidth(300);
 
     QGridLayout* grid = new QGridLayout(centralWidget);
 
@@ -66,8 +66,8 @@ void MainWindow::RecordNodesCharacteristics() {
     }
 
     QLabel* name = new QLabel("Name");
-    QLabel* x = new QLabel("Coordinate X");
-    QLabel* y = new QLabel("Coordinate Y");
+    QLabel* x = new QLabel("X");
+    QLabel* y = new QLabel("Y");
 
     QHBoxLayout* names_of_properties = new QHBoxLayout();
 
@@ -131,11 +131,12 @@ void MainWindow::SetConnections() {
     }
 
     QPushButton* enter = new QPushButton("Enter");
+    enter->setFixedSize(50, 39);
     grid->addWidget(enter);
 
     QWidget* central_widget = new QWidget();
-    central_widget->setMaximumHeight(600);
-    central_widget->setMaximumWidth(600);
+    central_widget->setMaximumHeight(300);
+    central_widget->setMaximumWidth(300);
 
     central_widget->setLayout(grid);
 
@@ -300,7 +301,7 @@ void MainWindow::ReadConnections() {
         }
 
         std::unordered_map<Node*, std::list<Edge*>> table;
-\
+
         for (size_t i = 0; i < m_edges.size() - 1; ++i) {
             std::list<Edge*> edges;
             edges.push_back(m_edges[i]);
@@ -330,14 +331,14 @@ void MainWindow::ReadConnections() {
 void MainWindow::FindShortestPath() {
     QGridLayout* grid = new QGridLayout;
 
-    QLabel* starting_node_label = new QLabel("starting node");
+    QLabel* starting_node_label = new QLabel("Start");
     QListWidget* starting_node_field = new QListWidget();
     for (auto node : m_nodes) {
         starting_node_field->addItem(QString::fromStdString(node->name));
     }
     starting_node_field->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    QLabel* final_node_label = new QLabel("final node");
+    QLabel* final_node_label = new QLabel("End");
     QListWidget* final_node_field = new QListWidget();
     for (auto node : m_nodes) {
         final_node_field->addItem(QString::fromStdString(node->name));
